@@ -4,7 +4,7 @@ import scipy.cluster.hierarchy as sch
 import numpy as np
 import matplotlib.pylab as plt
 from sklearn.decomposition import PCA
-import dtw  # EURUSD 实测中dtw表现 差于 euclidean
+#import dtw  # EURUSD 实测中dtw表现 差于 euclidean
 
 # 距离函数 用于替换 metric='euclidean'，格式 metric=distance
 def distance(a, b):
@@ -56,6 +56,7 @@ if __name__=='__main__':
     z = len(np.loadtxt('GOLD.txt', usecols=4, delimiter=','))-100 # z= 所有样本的总长度
     print(z)
     profit = np.zeros((z,)) # 所有样本单次交易获利情况
+    index_all = 0
     for i in range(16):
         points = np.loadtxt('data/L%s.txt'%i) # 载入分类点集
         index_L = np.loadtxt('index/L%s.txt'%i) # 载入分类集中每个个体在总样本中的位置信息
@@ -65,18 +66,25 @@ if __name__=='__main__':
         t = points.shape[0]//50    # 对分类集再分类，t表示再分类的数目，保证每类平均50个点以上
         print('%s points.cluster:' % i, t)
         plt.ion()
-        cluster = sch_distPdist_linkage_fcluster(points[:,:-1], t, method='complete', metric='euclidean')
+        cluster = sch_distPdist_linkage_fcluster(points[:,:-1], t, method='complete', metric=distance)#'euclidean')
         for j in range(1,t+1):
             index = np.where(cluster == j)[0] #再分类的第j类中的样本点在分类集i中的位置
             sum_j = np.sum(points[index, -1]-points[index, -2])
-            sum_all = sum_all + np.abs(sum_j)
-            if sum_j >=0: # 分类集i 的但次交易获利情况
-                profit_i[index] = points[index, -1]-points[index, -2]
+            #sum_all = sum_all + np.abs(sum_j)
+            if len(index) >= 10:
+                index_all = index_all+len(index)
+                sum_all = sum_all + np.abs(sum_j)
+                if sum_j >=0: # 分类集i 的但次交易获利情况
+                    profit_i[index] = points[index, -1]-points[index, -2]
+                else:
+                    profit_i[index] = -(points[index, -1] - points[index, -2])
             else:
-                profit_i[index] = -(points[index, -1] - points[index, -2])
+                profit_i[index] = 0
         profit[index_L.astype('int64')] = profit_i # 所有样本单次交易获利情况
-    mean_total = sum_all/total  # 总样本平均单次获利
+    mean_total = sum_all/index_all  # 总样本平均单次获利
     print('mean_total:',mean_total)
+    print('index>10:',index_all)
+    print('total:',total)
     #print(np.mean(profit))
     profit_add = cumsum(profit)  #总样本累积获利
     plt.figure()
