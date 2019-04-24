@@ -7,7 +7,9 @@ from sklearn.decomposition import PCA
 #import dtw  # EURUSD 实测中dtw表现 差于 euclidean
 
 # 距离函数 用于替换 metric='euclidean'，格式 metric=distance
-def distance(a, b):#距离：需要确定每一个分量的权重，然后求和，欧氏距离等都没有考虑权重问题。致使近期距离影响小，远期影响大，违背事实，建议各分量需要单位化
+def distance(a, b):
+    #距离：需要确定每一个分量的权重，然后求和，欧氏距离等都没有考虑权重问题。致使近期距离影响小，远期影响大，违背事实，建议各分量需要单位化
+    #c=(a-b)**2，s为权值向量，dist=np.sum（sc）
     dist = np.sum((a-b)**2)
     return dist
 # 累计求和函数
